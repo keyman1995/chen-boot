@@ -1,10 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
 <body>
+<img id="offline-resources-1x" th:src="@{/img/timg.jpg}">
 <p>Hello World</p>
+<input th:value="${contentPath}" type="hidden" id="contentPath"/>
+<button onclick="sendMessageByAjax()">这是一个按钮</button>
+
+<script>
+    function sendMessageByAjax() {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function () {
+            if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                var res = xmlHttp.responseText;
+                console.log(res);
+            }
+        }
+        var contentPath = document.getElementById("contentPath").value;
+        xmlHttp.open("GET", contentPath+"/sendMessage?platform=" + "1111", true);
+        xmlHttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xmlHttp.send();
+    };
+</script>
+
 </body>
 </html>

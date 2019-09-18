@@ -1,9 +1,16 @@
 package com.chen.boot.chenboot.controller;
 
+import com.chen.boot.chenboot.config.ReportFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.Base64;
+import java.io.FileNotFoundException;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @ClassName HelloController
@@ -15,19 +22,42 @@ import java.util.Base64;
 @Controller
 public class HelloController {
 
+    @Value("zhangsan")
+    private String name;
+
+    @Autowired
+    private ReportFactory reportFactory;
+
+    @Autowired
+    private DoubleColorUtils doubleColorUtils;
+
+    @ModelAttribute
+    public String getContentPath(){
+        return "/boot";
+    }
+
 
     @GetMapping("go")
-    public String helloTest(){
+    public String helloTest() {
+        reportFactory.getReportServiceMap();
         return "hello";
     }
 
 
+    @GetMapping("sendMessage")
+    @ResponseBody
+    public Set<String> sengMessage(String platform) {
+        Set<String> resultSet = null;
+
+        resultSet = doubleColorUtils.doCollect();
+
+        return resultSet;
+    }
+
+
     public static void main(String[] args) {
-        String apiKey = "351027f211ba417dacc9389f0b289410";
-        String apiSecreat = "0fbe3785c1ffcb22f296477fb8883b8f";
-        String temp = String.format("%s:%s", apiKey, apiSecreat);
-        String encrypt = Base64.getEncoder().encodeToString(temp.getBytes());
-        String authorization = String.format("Basic %s", encrypt);
+        String str = "";
+        str.split(",");
     }
 
 

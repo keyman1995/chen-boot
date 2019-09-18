@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chen.boot.chenboot.mapper.DoubleColorBallMapper">
+
+    <insert id="addDate" parameterType="com.chen.boot.chenboot.entity.DoubleColorBallEntiry">
+        INSERT INTO `double_color_ball`
+        (`first_ball`, `second_ball`, `third_ball`, `fourth_ball`, `fifth_ball`, `sixth_ball`, `blue_ball`, `open_date`, `open_term`, `sales`, `first_prize`, `second_prize`)
+        VALUES (#{firstBall}, #{secondBall}, #{thirdBall},#{thirdBall}, #{fifthBall}, #{sixthBall}, #{blueBall}, #{openDate}, #{openTerm}, #{sales}, #{firstPrize}, #{secondPrize});
+    </insert>
+
+</mapper>
