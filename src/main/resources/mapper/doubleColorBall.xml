@@ -5,7 +5,19 @@
     <insert id="addDate" parameterType="com.chen.boot.chenboot.entity.DoubleColorBallEntiry">
         INSERT INTO `double_color_ball`
         (`first_ball`, `second_ball`, `third_ball`, `fourth_ball`, `fifth_ball`, `sixth_ball`, `blue_ball`, `open_date`, `open_term`, `sales`, `first_prize`, `second_prize`)
-        VALUES (#{firstBall}, #{secondBall}, #{thirdBall},#{thirdBall}, #{fifthBall}, #{sixthBall}, #{blueBall}, #{openDate}, #{openTerm}, #{sales}, #{firstPrize}, #{secondPrize});
+        VALUES (#{firstBall}, #{secondBall}, #{thirdBall},#{thirdBall}, #{fifthBall}, #{sixthBall}, #{blueBall}, #{openDate}, #{openTerm}, #{sales}, #{firstPrize}, #{secondPrize})
     </insert>
+
+
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO `double_color_ball`
+        (`first_ball`, `second_ball`, `third_ball`, `fourth_ball`, `fifth_ball`, `sixth_ball`, `blue_ball`, `open_date`,
+        `open_term`, `sales`, `first_prize`, `second_prize`)
+        values
+        <foreach collection="list" item="doubleColor" separator=",">
+            (#{doubleColor.firstBall}, #{doubleColor.secondBall}, #{doubleColor.thirdBall},#{doubleColor.fourthBall}, #{doubleColor.fifthBall}, #{doubleColor.sixthBall}, #{doubleColor.blueBall}, #{doubleColor.openDate}, #{doubleColor.openTerm}, #{doubleColor.sales}, #{doubleColor.firstPrize}, #{doubleColor.secondPrize})
+        </foreach>
+    </insert>
+
 
 </mapper>

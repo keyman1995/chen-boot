@@ -1,6 +1,7 @@
 package com.chen.boot.chenboot.controller;
 
 
+import com.chen.boot.chenboot.controlleradvice.DoubleColorService;
 import com.chen.boot.chenboot.entity.DoubleColorBallEntiry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,6 +25,9 @@ public class DoubleColorUtils {
     @Autowired
     private ThreadPoolExecutor executorService;
 
+    @Autowired
+    private DoubleColorService doubleColorService;
+
     private volatile static AtomicInteger atomicInteger = new AtomicInteger();
 
     private static List<DoubleColorBallEntiry> doubleColorBallEntiries = new LinkedList<>();
@@ -31,7 +35,7 @@ public class DoubleColorUtils {
     private static int NCPU = Runtime.getRuntime().availableProcessors();
 
 
-    public Set<String> doCollect() {
+    public  String  doCollect() {
         System.out.println("正在获取...");
         String baseUrlPrefix = "http://kaijiang.zhcw.com/zhcw/html/ssq/list_";
         String baseUrlSuffix = ".html";
@@ -62,7 +66,10 @@ public class DoubleColorUtils {
             System.out.println("结果页数为0");
         }
         System.out.println("完成！最终结果条数" + doubleColorBallEntiries);
-        return resultList;
+
+
+        doubleColorService.batchAdd(doubleColorBallEntiries);
+        return "SUCCESS";
     }
 
     static class DoubleColorBallTask implements Runnable {
@@ -236,7 +243,6 @@ public class DoubleColorUtils {
         Matcher matcher = pattern.matcher(secondContent);
         while (matcher.find()) {
             entiry.setSecondPrize(Integer.valueOf(matcher.group()));
-            System.out.println(matcher.group());
         }
     }
 
@@ -250,7 +256,7 @@ public class DoubleColorUtils {
         Pattern pattern = Pattern.compile(dateRegx);
         Matcher matcher = pattern.matcher(oneTermContent);
         while (matcher.find()) {
-            entiry.setOpenDate(matcher.groupCount());
+            entiry.setOpenDate(Integer.valueOf(matcher.group().replaceAll("\\-","")));
         }
     }
 

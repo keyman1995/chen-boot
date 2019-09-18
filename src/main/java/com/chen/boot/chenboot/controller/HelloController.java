@@ -32,7 +32,7 @@ public class HelloController {
     private DoubleColorUtils doubleColorUtils;
 
     @ModelAttribute
-    public String getContentPath(){
+    public String getContentPath() {
         return "/boot";
     }
 
@@ -46,12 +46,12 @@ public class HelloController {
 
     @GetMapping("sendMessage")
     @ResponseBody
-    public Set<String> sengMessage(String platform) {
-        Set<String> resultSet = null;
+    public String sengMessage(String platform) {
 
-        resultSet = doubleColorUtils.doCollect();
 
-        return resultSet;
+        doubleColorUtils.doCollect();
+
+        return "SUCCESEE";
     }
 
 
