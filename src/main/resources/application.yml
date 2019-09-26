@@ -1,7 +1,5 @@
 server:
   port: 8089
-  servlet:
-    context-path: /boot
 spring:
   thymeleaf:
     cache: false
@@ -10,7 +8,10 @@ spring:
     encoding: UTF-8
     mode: HTML5
   datasource:
-
+    username: root
+    password: JiejiE962@Mysql183
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://47.108.95.152:3306/chenboot?useSSL=false&useUnicode=true&characterEncoding=utf8&tinyInt1isBit=false
     type: com.alibaba.druid.pool.DruidDataSource
 mybatis:
   mapper-locations: classpath:/mapper/*.xml

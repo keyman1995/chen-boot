@@ -1,6 +1,7 @@
 package com.chen.boot.chenboot;
 
 import com.chen.boot.chenboot.controller.HelloController;
+import com.chen.boot.chenboot.controlleradvice.UserService;
 import com.chen.boot.chenboot.entity.DoubleColorBallEntiry;
 import com.chen.boot.chenboot.mapper.DoubleColorBallMapper;
 import org.junit.Test;
@@ -19,6 +20,9 @@ public class ChenBootApplicationTests {
     @Autowired
     private DoubleColorBallMapper doubleColorBallMapper;
 
+    @Autowired
+    private UserService userService;
+
     @Test
     public void contextLoads() {
         DoubleColorBallEntiry entiry = new DoubleColorBallEntiry();
@@ -35,6 +39,11 @@ public class ChenBootApplicationTests {
         entiry.setFirstPrize(1);
         entiry.setSecondPrize(2);
         doubleColorBallMapper.addDate(entiry);
+    }
+
+    @Test
+    public void doUser(){
+        userService.updateById();
     }
 
 }

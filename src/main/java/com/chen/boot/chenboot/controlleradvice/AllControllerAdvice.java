@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
  * @Date 2019/9/6
  * @Version V1.0
  **/
-@ControllerAdvice
+//@ControllerAdvice
 public class AllControllerAdvice {
 
     @Value("${server.servlet.context-path}")

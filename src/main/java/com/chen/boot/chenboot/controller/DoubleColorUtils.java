@@ -5,6 +5,7 @@ import com.chen.boot.chenboot.controlleradvice.DoubleColorService;
 import com.chen.boot.chenboot.entity.DoubleColorBallEntiry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -12,11 +13,11 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 @Component
@@ -32,16 +33,56 @@ public class DoubleColorUtils {
 
     private static List<DoubleColorBallEntiry> doubleColorBallEntiries = new LinkedList<>();
 
-    private static int NCPU = Runtime.getRuntime().availableProcessors();
+    /**
+     * 获取最新一期的数据
+     *
+     * @return
+     */
+    public DoubleColorBallEntiry getCurrentTerm() {
+        DoubleColorBallEntiry entiry = new DoubleColorBallEntiry();
+        long recentDate = doubleColorService.getRecentDate();
+        System.out.println("正在获取...");
+        String homeUrl = "http://kaijiang.zhcw.com/zhcw/html/ssq/list_1.html";
+        String pageContent = getHtmlString(homeUrl);
+        if (pageContent != null && !pageContent.equals("")) {
+            getOneTermContent(pageContent);
+        } else {
+            System.out.println("该链接：url" + homeUrl + "的数据 丢失。");
+        }
+        //不为空的时候 取最新一期的号码
+        if (!CollectionUtils.isEmpty(doubleColorBallEntiries)) {
+            List<DoubleColorBallEntiry> emptyDoubleColorBallEntiries = new ArrayList<>();
+            emptyDoubleColorBallEntiries = checkMaxTermDoubleColorBallEntity(doubleColorBallEntiries, recentDate, emptyDoubleColorBallEntiries);
+            if (!CollectionUtils.isEmpty(emptyDoubleColorBallEntiries)) {
+                doubleColorService.batchAdd(emptyDoubleColorBallEntiries);
+            }
+            doubleColorBallEntiries.clear();
+        }
+
+        return entiry;
+    }
 
 
-    public  String  doCollect() {
+    //递归 遍历 当前列表中 大于今天的数据
+    public List<DoubleColorBallEntiry> checkMaxTermDoubleColorBallEntity(List<DoubleColorBallEntiry> doubleColorBallEntiries, long maxOpenDate, List<DoubleColorBallEntiry> emptyDoubleColorEntiries) {
+        IntSummaryStatistics statistics = doubleColorBallEntiries.stream().mapToInt((item) -> item.getOpenDate()).summaryStatistics();
+        int currentDate = statistics.getMax();
+        DoubleColorBallEntiry entiry;
+        if (maxOpenDate < currentDate) {
+            entiry = doubleColorBallEntiries.stream().filter((item) -> item.getOpenDate() == maxOpenDate).collect(Collectors.toList()).get(0);
+            emptyDoubleColorEntiries.add(entiry);
+            doubleColorBallEntiries.remove(entiry);
+            checkMaxTermDoubleColorBallEntity(doubleColorBallEntiries, maxOpenDate, emptyDoubleColorEntiries);
+        }
+        return emptyDoubleColorEntiries;
+    }
+
+
+    public String doCollect() {
         System.out.println("正在获取...");
         String baseUrlPrefix = "http://kaijiang.zhcw.com/zhcw/html/ssq/list_";
         String baseUrlSuffix = ".html";
         String homeUrl = "http://kaijiang.zhcw.com/zhcw/html/ssq/list_1.html";
-        Set<String> resultList = Collections.synchronizedSet(new HashSet<>());
-
         String pageCountContent = getHtmlString(homeUrl);
         int pageCount = getPageCount(pageCountContent);
 
@@ -50,7 +91,7 @@ public class DoubleColorUtils {
                 String url = baseUrlPrefix + i + baseUrlSuffix;
                 String pageContent = getHtmlString(url);
                 if (pageContent != null && !pageContent.equals("")) {
-                    getOneTermContent(pageContent, resultList);
+                    getOneTermContent(pageContent);
                 } else {
                     System.out.println("该链接：url" + url + "的数据 丢失。");
                 }
@@ -66,55 +107,8 @@ public class DoubleColorUtils {
             System.out.println("结果页数为0");
         }
         System.out.println("完成！最终结果条数" + doubleColorBallEntiries);
-
-
         doubleColorService.batchAdd(doubleColorBallEntiries);
         return "SUCCESS";
-    }
-
-    static class DoubleColorBallTask implements Runnable {
-
-        private String htmlUrl;
-        private Set<String> resultList;
-
-        public DoubleColorBallTask(String htmlUrl, Set<String> resultList) {
-            this.htmlUrl = htmlUrl;
-            this.resultList = resultList;
-        }
-
-        @Override
-        public void run() {
-            String pageContent = getHtmlString(htmlUrl);
-            if (pageContent != null && !pageContent.equals("")) {
-                getOneTermContent(pageContent, resultList);
-            } else {
-                System.out.println("该链接：url" + htmlUrl + "的数据 丢失。");
-            }
-        }
-    }
-
-    static class DoubleColorBallCallBack implements Callable<Set<String>> {
-
-        private String htmlUrl;
-
-        private Set<String> resultList;
-
-        public DoubleColorBallCallBack(String htmlUrl, Set<String> resultList) {
-            this.htmlUrl = htmlUrl;
-            this.resultList = resultList;
-        }
-
-        @Override
-        public Set<String> call() throws Exception {
-            String pageContent = getHtmlString(htmlUrl);
-            Set<String> result = null;
-            if (pageContent != null && !pageContent.equals("")) {
-                result = getOneTermContent(pageContent, resultList);
-            } else {
-                System.out.println("该链接：url" + htmlUrl + "的数据 丢失。");
-            }
-            return result;
-        }
     }
 
 
@@ -168,8 +162,8 @@ public class DoubleColorUtils {
             connection.setRequestProperty("Connection", "close");
             //不要用cache，用了也没有什么用，因为我们不会经常对一个链接频繁访问。（针对程序）
             connection.setUseCaches(false);
-            connection.setConnectTimeout(6 * 1000);
-            connection.setReadTimeout(6 * 1000);
+            connection.setConnectTimeout(60 * 1000);
+            connection.setReadTimeout(60 * 1000);
             connection.setDoOutput(true);
             connection.setDoInput(true);
             connection.setRequestProperty("Charset", "utf-8");
@@ -208,36 +202,38 @@ public class DoubleColorUtils {
         return content;
     }
 
+    public static void startParseConten(Matcher matcher) {
+        DoubleColorBallEntiry entiry = new DoubleColorBallEntiry();
+        String oneTermContent = matcher.group();
+        getOneTermDate(oneTermContent, entiry);
+        getTheTerm(oneTermContent, entiry);
+        getOneTermFirstPrize(oneTermContent, entiry);
+        getOneTermSendPrize(oneTermContent, entiry);
+        getOneTermPrize(oneTermContent, entiry);
+        getOneTermNumbers(oneTermContent, entiry);
+    }
 
-    private static Set<String> getOneTermContent(String pageContent, Set<String> resultList) {
+
+    private static void getOneTermContent(String pageContent) {
 
         String regx = "<td align=\"center\">\\d+\\-\\d+\\-\\d+</td>[\\s\\S]+?<td align=\"center\"><strong class=\"rc\">\\d+</strong></td>";
         Pattern pattern = Pattern.compile(regx);
         Matcher matcher = pattern.matcher(pageContent);
         while (matcher.find()) {
-            DoubleColorBallEntiry entiry = new DoubleColorBallEntiry();
-            String oneTermContent = matcher.group();
-            getOneTermDate(oneTermContent,entiry);
-            getTheTerm(oneTermContent,entiry);
-            getOneTermFirstPrize(oneTermContent,entiry);
-            getOneTermSendPrize(oneTermContent,entiry);
-            getOneTermPrize(oneTermContent,entiry);
-            getOneTermNumbers(oneTermContent, entiry);
-
+            startParseConten(matcher);
         }
-        return resultList;
     }
 
-    private static void getOneTermSendPrize(String oneTermContent,DoubleColorBallEntiry entiry) {
+    private static void getOneTermSendPrize(String oneTermContent, DoubleColorBallEntiry entiry) {
         String regx = "<strong class=\"rc\">\\d+</strong>";
         Pattern pattern = Pattern.compile(regx);
         Matcher matcher = pattern.matcher(oneTermContent);
         while (matcher.find()) {
-            getSecondPrize(matcher.group(),entiry);
+            getSecondPrize(matcher.group(), entiry);
         }
     }
 
-    private static void getSecondPrize(String secondContent,DoubleColorBallEntiry entiry) {
+    private static void getSecondPrize(String secondContent, DoubleColorBallEntiry entiry) {
         String regx = "\\d+";
         Pattern pattern = Pattern.compile(regx);
         Matcher matcher = pattern.matcher(secondContent);
@@ -251,12 +247,13 @@ public class DoubleColorUtils {
      *
      * @param oneTermContent
      */
-    private static void getOneTermDate(String oneTermContent,DoubleColorBallEntiry entiry) {
+    private static void getOneTermDate(String oneTermContent, DoubleColorBallEntiry entiry) {
         String dateRegx = "\\d+\\-\\d+\\-\\d+";
         Pattern pattern = Pattern.compile(dateRegx);
         Matcher matcher = pattern.matcher(oneTermContent);
         while (matcher.find()) {
-            entiry.setOpenDate(Integer.valueOf(matcher.group().replaceAll("\\-","")));
+
+            entiry.setOpenDate(Integer.valueOf(matcher.group().replaceAll("\\-", "")));
         }
     }
 
@@ -265,7 +262,7 @@ public class DoubleColorUtils {
      *
      * @param oneTermContent
      */
-    private static void getTheTerm(String oneTermContent,DoubleColorBallEntiry entiry) {
+    private static void getTheTerm(String oneTermContent, DoubleColorBallEntiry entiry) {
         String termRegx = "<td align=\"center\">\\d+</td>";
         Pattern pattern = Pattern.compile(termRegx);
         Matcher matcher = pattern.matcher(oneTermContent);
@@ -274,7 +271,7 @@ public class DoubleColorUtils {
         }
     }
 
-    private static void getTerm(String termConten,DoubleColorBallEntiry entiry) {
+    private static void getTerm(String termConten, DoubleColorBallEntiry entiry) {
         String termRegx = "\\d+";
         Pattern pattern = Pattern.compile(termRegx);
         Matcher matcher = pattern.matcher(termConten);
@@ -289,17 +286,17 @@ public class DoubleColorUtils {
      *
      * @param oneTermContent
      */
-    private static void getOneTermFirstPrize(String oneTermContent,DoubleColorBallEntiry entiry) {
+    private static void getOneTermFirstPrize(String oneTermContent, DoubleColorBallEntiry entiry) {
         String regx = "<strong>\\d+</strong>";
         Pattern pattern = Pattern.compile(regx);
         Matcher matcher = pattern.matcher(oneTermContent);
         while (matcher.find()) {
             String contents = matcher.group();
-            getFirstPrize(contents,entiry);
+            getFirstPrize(contents, entiry);
         }
     }
 
-    private static void getFirstPrize(String firstPrizeContent,DoubleColorBallEntiry entiry) {
+    private static void getFirstPrize(String firstPrizeContent, DoubleColorBallEntiry entiry) {
         String regx = "\\d+";
         Pattern pattern = Pattern.compile(regx);
         Matcher matcher = pattern.matcher(firstPrizeContent);
@@ -313,7 +310,7 @@ public class DoubleColorUtils {
      *
      * @param oneTermContent
      */
-    private static void getOneTermPrize(String oneTermContent,DoubleColorBallEntiry entiry) {
+    private static void getOneTermPrize(String oneTermContent, DoubleColorBallEntiry entiry) {
         String regx = ">\\d+\\,\\d+\\,\\d+<";
         Pattern pattern = Pattern.compile(regx);
         Matcher matcher = pattern.matcher(oneTermContent);
@@ -340,14 +337,12 @@ public class DoubleColorUtils {
         StringBuffer finalResut = new StringBuffer();
         while (matcher.find()) {
             String content = matcher.group();
-            getTermNumber(content,entiry);
-//            String ballNumber = content.substring(1, content.length() - 1);
-//            finalResut.append(ballNumber).append(" ");
+            getTermNumber(content, entiry);
         }
 
     }
 
-    private static void getTermNumber(String termContent,DoubleColorBallEntiry entiry) {
+    private static void getTermNumber(String termContent, DoubleColorBallEntiry entiry) {
         String regx = ">\\d+<";
         Pattern pattern = Pattern.compile(regx);
         Matcher matcher = pattern.matcher(termContent);
@@ -358,12 +353,12 @@ public class DoubleColorUtils {
             String ballNumber = content.substring(1, content.length() - 1);
             finalResut.append(ballNumber).append(" ");
         }
-        addBallNumber(finalResut,entiry);
+        addBallNumber(finalResut, entiry);
     }
 
     private static void addBallNumber(StringBuffer finalResut, DoubleColorBallEntiry entiry) {
         String[] balls = finalResut.toString().split(" ");
-        if(balls.length==7){
+        if (balls.length == 7) {
             entiry.setFirstBall(Integer.valueOf(balls[0]));
             entiry.setSecondBall(Integer.valueOf(balls[1]));
             entiry.setThirdBall(Integer.valueOf(balls[2]));
@@ -371,9 +366,9 @@ public class DoubleColorUtils {
             entiry.setFifthBall(Integer.valueOf(balls[4]));
             entiry.setSixthBall(Integer.valueOf(balls[5]));
             entiry.setBlueBall(Integer.valueOf(balls[6]));
-        }else{
-            System.err.println("改期采集的数据有误"+entiry);
+        } else {
+            System.err.println("改期采集的数据有误" + entiry);
         }
-         doubleColorBallEntiries.add(entiry);
+        doubleColorBallEntiries.add(entiry);
     }
 }
