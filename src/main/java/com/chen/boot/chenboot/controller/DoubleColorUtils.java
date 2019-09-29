@@ -38,7 +38,7 @@ public class DoubleColorUtils {
      *
      * @return
      */
-    public DoubleColorBallEntiry getCurrentTerm() {
+    public DoubleColorBallEntiry  getCurrentTerm() {
         DoubleColorBallEntiry entiry = new DoubleColorBallEntiry();
         long recentDate = doubleColorService.getRecentDate();
         System.out.println("正在获取...");
@@ -69,7 +69,7 @@ public class DoubleColorUtils {
         int currentDate = statistics.getMax();
         DoubleColorBallEntiry entiry;
         if (maxOpenDate < currentDate) {
-            entiry = doubleColorBallEntiries.stream().filter((item) -> item.getOpenDate() == maxOpenDate).collect(Collectors.toList()).get(0);
+            entiry = doubleColorBallEntiries.stream().filter((item) -> item.getOpenDate() == currentDate).collect(Collectors.toList()).get(0);
             emptyDoubleColorEntiries.add(entiry);
             doubleColorBallEntiries.remove(entiry);
             checkMaxTermDoubleColorBallEntity(doubleColorBallEntiries, maxOpenDate, emptyDoubleColorEntiries);

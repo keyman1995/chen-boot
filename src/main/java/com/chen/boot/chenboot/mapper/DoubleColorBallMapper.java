@@ -2,7 +2,9 @@ package com.chen.boot.chenboot.mapper;
 
 import com.chen.boot.chenboot.entity.DoubleColorBallEntiry;
 import com.chen.boot.chenboot.entity.MonthResponse;
+import com.chen.boot.chenboot.entity.request.OpenDayRequest;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -16,6 +18,6 @@ public interface DoubleColorBallMapper {
 
     int getRecentDate();
 
-    List<MonthResponse> getSumBallNumByDate();
+    List<MonthResponse> getSumBallNumByDate(OpenDayRequest request);
 
 }

@@ -2,13 +2,11 @@ package com.chen.boot.chenboot.controller;
 
 import com.chen.boot.chenboot.controlleradvice.DoubleColorService;
 import com.chen.boot.chenboot.entity.MonthResponse;
+import com.chen.boot.chenboot.entity.request.OpenDayRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -48,8 +46,15 @@ public class HelloController {
     @RequestMapping("getStatistical")
     @ResponseBody
     @CrossOrigin
-    public List<MonthResponse> getStatistical() {
-        return doubleColorService.getSumBallNumByDate();
+    public List<MonthResponse> getStatistical( OpenDayRequest request) {
+        return doubleColorService.getSumBallNumByDate(request);
+    }
+
+    @RequestMapping("getCurrent")
+    @ResponseBody
+    public String getCurrent() {
+        doubleColorUtils.getCurrentTerm();
+        return "SUCCESS";
     }
 
 
