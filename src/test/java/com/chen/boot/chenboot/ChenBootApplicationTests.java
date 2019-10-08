@@ -3,7 +3,7 @@ package com.chen.boot.chenboot;
 import com.chen.boot.chenboot.controller.HelloController;
 import com.chen.boot.chenboot.controlleradvice.UserService;
 import com.chen.boot.chenboot.entity.DoubleColorBallEntiry;
-import com.chen.boot.chenboot.mapper.DoubleColorBallMapper;
+import com.chen.boot.chenboot.primary.DoubleColorBallMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

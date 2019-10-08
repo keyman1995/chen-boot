@@ -1,4 +1,4 @@
-package com.chen.boot.chenboot.mapper;
+package com.chen.boot.chenboot.primary;
 
 import org.apache.ibatis.annotations.Mapper;
 

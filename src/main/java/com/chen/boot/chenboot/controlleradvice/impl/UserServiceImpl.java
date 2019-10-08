@@ -4,11 +4,12 @@ import com.chen.boot.chenboot.controlleradvice.LogService;
 import com.chen.boot.chenboot.controlleradvice.UserService;
 import com.chen.boot.chenboot.entity.Log;
 import com.chen.boot.chenboot.entity.User;
-import com.chen.boot.chenboot.mapper.UserMapper;
+import com.chen.boot.chenboot.primary.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.util.UUID;
 
@@ -39,6 +40,7 @@ public class UserServiceImpl implements UserService {
         User user = mapper.getById(1);
         user.setName("chenjie11");
         mapper.upDateById(user);
-        logService.addLog(new Log(UUID.randomUUID().toString(),"updateUser"));
+        logService.addLog(new Log(UUID.randomUUID().toString(), "updateUser"));
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
     }
 }

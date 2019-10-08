@@ -8,10 +8,16 @@ spring:
     encoding: UTF-8
     mode: HTML5
   datasource:
-    username: root
-    password: JiejiE962@Mysql183
-    driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://47.108.95.152:3306/chenboot?useSSL=false&useUnicode=true&characterEncoding=utf8&tinyInt1isBit=false
-    type: com.alibaba.druid.pool.DruidDataSource
-mybatis:
-  mapper-locations: classpath:/mapper/*.xml
+    primary:
+      username: root
+      password: JiejiE962@Mysql183
+      driver-class-name: com.mysql.jdbc.Driver
+      jdbcUrl: jdbc:mysql://47.108.95.152:3306/chenboot?useSSL=false&useUnicode=true&characterEncoding=utf8&tinyInt1isBit=false
+      type: com.alibaba.druid.pool.DruidDataSource
+    follower:
+      username: root
+      password: jiejie962
+      driver-class-name: com.mysql.jdbc.Driver
+      jdbcUrl: jdbc:mysql://127.0.0.1:3306/test?useSSL=false&useUnicode=true&characterEncoding=utf8&tinyInt1isBit=false&serverTimezone=GMT%2B8
+      type: com.alibaba.druid.pool.DruidDataSource
+

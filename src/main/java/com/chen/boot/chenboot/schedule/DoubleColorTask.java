@@ -1,7 +1,7 @@
 package com.chen.boot.chenboot.schedule;
 
 import com.chen.boot.chenboot.controller.DoubleColorUtils;
-import com.chen.boot.chenboot.mapper.CornMapper;
+import com.chen.boot.chenboot.primary.CornMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
